@@ -1,168 +1,226 @@
-<div class="border-bottom d-flex justify-content-between py-3">
-  <h4>Data Penjualan</h4>
-  <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalTambahPenjualan">
-    <i class="bi bi-plus"></i> Tambah Penjualan
-  </button>
-</div>
+<div class="border-bottom py-3"> 
+    <h4>Penjualan</h> 
+</div> 
+<div class="row justify-content-center mt-3">
+    <div class="col-7 bg-light-subtle me-3 p-3 shadow-sm"> 
+        <div class="table-responsive">
+            <table class="table table-striped" id="tabelPenjualan"> 
+                <thead> 
+                    <tr> 
+                        <th scope="col">No</th> 
+                        <th scope="col">Nama Barang</th> 
+                        <th scope="col">Jumlah</th> 
+                        <th scope="col">Harga</th> 
+                        <th scope="col">Total Harga</th> 
+                    </tr> 
+                </thead> 
+                <tbody>
 
-<!-- Modal Tambah Penjualan -->
-<div class="modal fade" id="modalTambahPenjualan" tabindex="-1" aria-labelledby="modalTambahPenjualanLabel" aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h1 class="modal-title fs-5" id="modalTambahPenjualanLabel">Tambah Data Penjualan</h1>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-      <form action="modul/penjualan/proses.php?aksi=tambah" method="post">
-        <div class="modal-body">
-          <div class="mb-3">
-            <label for="barang" class="form-label">Barang</label>
-            <select class="form-select" name="barang" required>
-              <option value="" disabled selected>Pilih Barang</option>
-              <?php
-              $sql_barang = "SELECT * FROM barang ORDER BY nama_barang ASC";
-              $result_barang = $mysqli->query($sql_barang);
-              while ($row_barang = $result_barang->fetch_assoc()) {
-                  echo "<option value='{$row_barang['id_barang']}'>{$row_barang['nama_barang']} - {$row_barang['merk']}</option>";
-              }
-              ?>
-            </select>
-          </div>
-          <div class="mb-3">
-            <label for="jumlah" class="form-label">Jumlah</label>
-            <input type="number" name="jumlah" class="form-control" placeholder="Contoh: 10" required>
-          </div>
-          <div class="mb-3">
-            <label for="total_harga" class="form-label">Total Harga</label>
-            <input type="number" name="total_harga" class="form-control" placeholder="Contoh: 70000" required>
-          </div>
-          <div class="mb-3">
-            <label for="tanggal" class="form-label">Tanggal Penjualan</label>
-            <input type="date" name="tanggal" class="form-control" required>
-          </div>
+                </tbody> 
+            </table> 
         </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-          <button type="submit" class="btn btn-primary">Tambah</button>
+        <div class="d-flex justify-content-between bg-warning-subtle p-3 shadow-sm mb- 3">
+            <h3>Total</h3>
+            <h3 id="totalBayar"></h3>
         </div>
-      </form>
+        <div class="d-flex justify-content-end">
+            <button type="button" class="btn btn-secondary me-2" onclick="resetPenjualan()">Reset</button>
+            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-l bs- target="#modalBayar">Bayar</button>
+            <!-- buat modal -->
+             <div class="modal fade" id="modalBayar" tabindex="-1" aria- labelledby="exampleModalLabel" aria-hidden="true">
+                <div class="modal-dialog"> 
+                    <div class="modal-content"> 
+                        <div class="modal-header"> 
+                            <h1 class="modal-title fs-5" id="exampleModalLabel">Bayar</h1> 
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria- label="Close"></button>
+                        </div> 
+                        <div class="modal-body"> 
+                            <div class="mb-3">
+                                <label for="totalbayar" class="form-label">Total Bayar</label> 
+                                <input type="number" class="form-control" id="modalTotalBayar" readonly> 
+                            </div> <div class="mb-3"> 
+                                <label for="bayar" class="form-label">Bayar</label> 
+                                <input type="number" class="form-control" id="bayar" oninput="hitungKembalian()"> 
+                            </div> 
+                            <div class="mb-3"> 
+                                <label for="kembalian" class="form-label">Kembalian</label> 
+                                <input type="number" class="form-control" id="kembalian" readonly> 
+                            </div> 
+                        </div> 
+                        <div class="modal-footer"> 
+                            <button type="button" class="btn btn-secondary" data-bs- dismiss="modal">Close</button> 
+                            <button type="button" class="btn btn-primary" onclick="simpanPenjualan( )">Proses</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
-  </div>
-</div>
-
-<!-- Tabel Data Penjualan -->
-<table id="penjualanTable" class="table">
-  <thead>
-    <tr>
-      <th>No</th>
-      <th>Barang</th>
-      <th>Jumlah</th>
-      <th>Total Harga</th>
-      <th>Tanggal</th>
-      <th>Aksi</th>
-    </tr>
-  </thead>
-  <tbody>
-    <?php
-    $sql_penjualan = "SELECT p.*, b.nama_barang, b.merk 
-                      FROM penjualan p 
-                      INNER JOIN barang b ON p.id_barang = b.id_barang 
-                      ORDER BY p.id_penjualan ASC";
-    $result_penjualan = $mysqli->query($sql_penjualan);
-    $no = 1;
-    while ($row_penjualan = $result_penjualan->fetch_assoc()) {
-        echo "
-        <tr>
-          <td>{$no}</td>
-          <td>{$row_penjualan['nama_barang']} - {$row_penjualan['merk']}</td>
-          <td>{$row_penjualan['jumlah']}</td>
-          <td>Rp " . number_format($row_penjualan['total_harga'], 0, ',', '.') . "</td>
-          <td>{$row_penjualan['tanggal']}</td>
-          <td>
-            <a href='' data-bs-toggle='modal' data-bs-target='#modalEditPenjualan{$row_penjualan['id_penjualan']}' class='text-info'>
-              <i class='bi bi-pencil-square'></i>
-            </a>
-            <a href='' data-bs-toggle='modal' data-bs-target='#modalHapusPenjualan{$row_penjualan['id_penjualan']}' class='text-danger'>
-              <i class='bi bi-trash-fill'></i>
-            </a>
-          </td>
-        </tr>";
-
-        // Modal Edit Penjualan
-        echo "
-        <div class='modal fade' id='modalEditPenjualan{$row_penjualan['id_penjualan']}' tabindex='-1' aria-labelledby='modalEditPenjualanLabel' aria-hidden='true'>
-          <div class='modal-dialog'>
-            <div class='modal-content'>
-              <div class='modal-header'>
-                <h1 class='modal-title fs-5' id='modalEditPenjualanLabel'>Edit Data Penjualan</h1>
-                <button type='button' class='btn-close' data-bs-dismiss='modal' aria-label='Close'></button>
-              </div>
-              <form action='modul/penjualan/proses.php?aksi=edit&id={$row_penjualan['id_penjualan']}' method='post'>
-                <div class='modal-body'>
-                  <div class='mb-3'>
-                    <label for='barang' class='form-label'>Barang</label>
-                    <select class='form-select' name='barang' required>
-                      <option value='' disabled>Pilih Barang</option>";
-        $sql_barang = "SELECT * FROM barang ORDER BY nama_barang ASC";
-        $result_barang = $mysqli->query($sql_barang);
-        while ($row_barang = $result_barang->fetch_assoc()) {
-            $selected = $row_penjualan['id_barang'] == $row_barang['id_barang'] ? "selected" : "";
-            echo "<option value='{$row_barang['id_barang']}' $selected>{$row_barang['nama_barang']} - {$row_barang['merk']}</option>";
-        }
-        echo "
-                    </select>
-                  </div>
-                  <div class='mb-3'>
-                    <label for='jumlah' class='form-label'>Jumlah</label>
-                    <input type='number' name='jumlah' class='form-control' value='{$row_penjualan['jumlah']}' required>
-                  </div>
-                  <div class='mb-3'>
-                    <label for='total_harga' class='form-label'>Total Harga</label>
-                    <input type='number' name='total_harga' class='form-control' value='{$row_penjualan['total_harga']}' required>
-                  </div>
-                  <div class='mb-3'>
-                    <label for='tanggal' class='form-label'>Tanggal Penjualan</label>
-                    <input type='date' name='tanggal' class='form-control' value='{$row_penjualan['tanggal']}' required>
-                  </div>
-                </div>
-                <div class='modal-footer'>
-                  <button type='button' class='btn btn-secondary' data-bs-dismiss='modal'>Close</button>
-                  <button type='submit' class='btn btn-primary'>Ubah</button>
-                </div>
-              </form>
+    <div class="col-4 bg-light-subtle p-3 shadow-sm">
+        <diV class="mb-3">
+            <label for="barang" class="form-label">Barang</label>
+            <select class="form-select" name="barang" id="barang" onchange="pilihBarang()"> 
+                <option disabled selected>Pilih Barang</option> 
+                <?php 
+                $sql_barang = "SELECT * FROM barang INNER JOIN persediaan ON barang.id_barang=persediaan.id_barang"; 
+                $result_barang = $mysqli->query($sql_barang); 
+                while($row_barang = $result_barang->fetch_assoc()){ 
+                    ?> 
+                    <option value="<?= $row_barang['id_barang'];?>" 
+                    nama-barang="<?= $row_barang['nama_barang'];?>" 
+                    data-stok="<?= $row_barang[ 'stok_akhir']; ?>" 
+                    data-harga="<?= $row_barang['harga_jual'];?>"
+                    >
+                    <?=$row_barang['nama_barang'];?> 
+                    </option> 
+                    <?php
+                }
+                ?>
+                </select>
             </div>
-          </div>
-        </div>";
-
-        // Modal Hapus Penjualan
-        echo "
-        <div class='modal fade' id='modalHapusPenjualan{$row_penjualan['id_penjualan']}' tabindex='-1' aria-labelledby='modalHapusPenjualanLabel' aria-hidden='true'>
-          <div class='modal-dialog'>
-            <div class='modal-content'>
-              <div class='modal-header'>
-                <h1 class='modal-title fs-5' id='modalHapusPenjualanLabel'>Hapus Data Penjualan</h1>
-                <button type='button' class='btn-close' data-bs-dismiss='modal' aria-label='Close'></button>
-              </div>
-              <div class='modal-body'>
-                Apakah Anda yakin akan menghapus data penjualan barang {$row_penjualan['nama_barang']}?
-              </div>
-              <div class='modal-footer'>
-                <button type='button' class='btn btn-secondary' data-bs-dismiss='modal'>Close</button>
-                <form action='modul/penjualan/proses.php?aksi=hapus&id={$row_penjualan['id_penjualan']}' method='post'>
-                  <button type='submit' class='btn btn-danger'>Hapus</button>
-                </form>
-              </div>
+            <div class="mb-3">
+                <label for="stok" class="form- label">Stok</label>
+                <input type="number" class=" form- control" id="stok" readonly>
             </div>
-          </div>
-        </div>";
-        $no++;
-    }
-    ?>
-  </tbody>
-</table>
-
-<script>
-  $(document).ready(function () {
-    $('#penjualanTable').DataTable();
-  });
-</script>
+            <div class="mb-3">
+                <label for="i jumlah" class="form- label">Jumlah</label>
+                <input type="number" class= "form-control" id=" jumlah" oninput="hitungtotalharga()">
+            </div>
+            <div class="mb-3">
+                <labe for= "harga" class=" form- label" >Harga</label>
+                <input type= "number" class=" form- control" id="harga" readonly>
+            </div>
+            <diV class="mb-3">
+                <label for="totalharga" class="form- label">Total Harga</label>
+                <input type= "number" class=" form-control" id="totalharga" readonly>
+            </div>
+            <div class="mb-3">
+                <button type="button" class="btn btn-primary W-100" onclick="tambahItem()">Tambah Item</button>
+            </div>
+        </div>
+    </div>
+    <div class="row mt-3 shadow- SM">
+        <div class="col-12">
+            <div class=" border-bottom py-3">
+                <h4>Data Penjualan</h4>
+            </div>
+            <table class="table table-stri iped" id=" tabelDataPenjualan">
+                <thead>
+                    <tr> 
+                        <th scope="col">No</th> 
+                        <th scope="col">Tanggal</th> 
+                        <th scope= "col">Jumlah</th> 
+                        <th scope="col">Harga</th>
+                        <th scope="col">Total Harga</th> 
+                        <th scope="col">Aksi</th> 
+                    </tr> 
+                </thead> 
+                <tbody>
+                    <?php 
+                    $sql_penjualan ="SELECT * FROM penjualan"; 
+                    $result_penjualan = $mysqli->query($sql_penjualan); 
+                    $no = 1; 
+                    while($row_penjualan = $result_penjualan->fetch_assoc()){
+                        ?> 
+                        <tr> 
+                            <td><?= $no;?></td> 
+                            <td> <?= $row_penjualan['tanggal_penjualan'];?> 
+                        </td> 
+                        <td> 
+                            <div class="d-flex justify-content-between"> 
+                                <span>Rp.</span> 
+                                <span>
+                                    <?= number_format ($row_penjualan['totalbayar'],0,',',',');?> 
+                                    </span> 
+                                    </div> 
+                                    </td> 
+                                    <td> 
+                                        <div class="d-flex justify-content-between">
+                                             <span>Rp.</span> 
+                                             <span> 
+                                                <?= number_format ($row_penjualan['totalbayar'],0,',',',');?>  
+                                                </span> 
+                                                </div> 
+                                                </td> 
+                                                <td> 
+                                                    <div class="d-flex justify-content-between"> 
+                                                        <span>Rp.</span> 
+                                                        <span> <?= number_format($row_penjualan['kembalian'],0,',',',');?> 
+                                                        </span> 
+                                                        </div> 
+                                                        </td> 
+                                                        <td> 
+                                                            <a class="btn btn-primary btn-sm" href="? modul=penjualan&aksi=detail&id=<?= $row_penjualan['id_penjualan'];?>"> 
+                                                                <i class="bi bi-search"></i>
+                                                                 Detail 
+                                                                 </a> 
+                                                                 </td> 
+                                                                 </tr> 
+                                                                 <?php 
+                                                                  $no++;
+                                                               }
+                                                               ?>
+                                                               </tbody>
+                                                            </table>
+                                                        </div>
+                                                    </div>
+                                                    <?php 
+                                                    if(isset($_GET['aksi']) && $_GET['aksi']=="detail"){
+                                                        ?> 
+                                                        <div class="row mt-3 shadow-sm">
+                                                            <div class="col-12">
+                                                                <div class="border-bottom py-3"> 
+                                                                    <h4>Detail Penjualan</h4>
+                                                                </div> 
+                                                                <table class="table table-striped"> 
+                                                                    <thead>
+                                                                        <tr>
+                                                                            <th scope="col">No</th>
+                                                                            <th scope="col">Nama Barang</th> 
+                                                                            <th scope="col">Jumlah</th>
+                                                                            <th scope="col">Harga</th>
+                                                                            <th scope="col">Total Harga</th>
+                                                                        </tr>
+                                                                    </thead>
+                                                                    <tbody>
+                                                                        <?php
+                                                                        $sql_detailpenjualan = "SELECT * FROM detail_penjualan INNER JOIN barang ON detail_penjualan.id_barang = barang.id_barang WHERE id_penjualan = $GET[id]'";
+                                                                        $result_detailpenjualan = $mysqli->query($sql_detailpenjualan);
+                                                                        $no = 1;
+                                                                        while($row_detailpenjualan = $result_detailpenjualan->fetch_assoc()){
+                                                                            ?>
+                                                                            <tr>
+                                                                                <td>
+                                                                                    <?= $no; ?></td>
+                                                                                    <td><?= $row_detailpenjualan['nama_barang'];?></td>
+                                                                                    <td><?= $row_detailpenjualan['jumlah'];?></td>
+                                                                                    <td>
+                                                                                        <div class="d-flex justify-content-between">
+                                                                                            <span>
+                                                                                           </span>
+                                                                                           <span>
+                                                                                            <?= number_format($row_detailpenjualan['harga'],0,',','.');?>
+                                                                                            </span>
+                                                                                            </div>
+                                                                                            </td>
+                                                                                            <td>
+                                                                                                <div class="d-flex justify-content-between">
+                                                                                                <span>Rp.</span>
+                                                                                                <span>
+                                                                                                    <?= number_format($row_detailpenjualan['totalharga'],0,',','.');?>
+                                                                                                    </span>
+                                                                                                    </div>
+                                                                                                    </td>
+                                                                                                     </tr>
+                                                                                                     <?php
+                                                                                                     $no++;
+                                                                                                   } 
+                                                                                                   ?>
+                                                                                                </tbody>
+                                                                                                </table>
+                                                                                                </div>
+                                                                                                </div>
+                                                                                                <?php 
+                                                                                                }
+                                                                                                ?>
+                                                                                                <script src="modul/penjualan/index.js"></script>           

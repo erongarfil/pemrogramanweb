@@ -64,7 +64,7 @@
         </tr>
     </thead>
     <tbody>
-        <?php
+    <?php
         $sql_persediaan = "SELECT * FROM persediaan a INNER JOIN barang b ON a.id_barang = b.id_barang";
         $result_persediaan = $mysqli->query($sql_persediaan);
         $no = 0;
